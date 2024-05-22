@@ -1,0 +1,409 @@
+.fullscreen {
+  height: 100%;
+  width: 100%;
+
+  height: 100vh;
+  width: calc(100vw - 10px);
+
+  margin: 0px;
+  padding: 0px 5px;
+
+  text-align: left;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  font-style: normal;
+}
+
+.headline {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+div {
+  margin: 0;
+  padding: 0;
+}
+
+.ship-type-container {
+  text-align: left;
+  font-family: Georgia, Times, serif;
+}
+
+.row {
+  width: 100%;
+  display: flex;
+}
+
+.italic-span {
+  font-weight: italic;
+}
+
+.deployed-elsewhere h3 {
+  background-color: lightgoldenrodyellow;
+}
+
+.wrapper {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.wrapper p {
+  display: none;
+}
+
+.sunk {
+  position: relative;
+}
+
+.sunk-small {
+  position: relative;
+}
+
+.sunk p {
+  position: absolute;
+  bottom: -80px;
+  left: 0;
+  right: 0;
+  color: lightcoral;
+  font-size: 100px;
+  font-weight: bold;
+  display: initial;
+}
+
+.sunk-small p {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  color: lightcoral;
+  font-size: 70px;
+  font-weight: bold;
+  display: initial;
+}
+
+.sunk h3 {
+  background-color: lightcoral;
+}
+
+.sunk-small h3 {
+  background-color: lightcoral;
+}
+
+.moskva img {
+  width: 500px;
+  max-width: 100%;
+}
+
+.ladny,
+.pytlivy {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+  background-color: white;
+}
+
+.ladny img,
+.pytlivy img {
+  width: 375px;
+  max-width: 100%;
+}
+
+.admiral-makarov,
+.admiral-essen,
+.admiral-grigorovich {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.admiral-makarov img,
+.admiral-essen img,
+.admiral-grigorovich img {
+  width: 375px;
+  max-width: 100%;
+}
+
+.mercury {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.mercury img {
+  width: 320px;
+  max-width: 100%;
+}
+
+.tsyklon,
+.askold {
+  background-color: lightcoral;
+}
+
+.tsyklon img,
+.askold img,
+.amur img,
+.tucha img {
+  width: 166px;
+  max-width: 100%;
+}
+
+.kasimov,
+.eysk,
+.suzdalets,
+.alexandrovets,
+.povorino,
+.muromets {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.kasimov img,
+.eysk img,
+.suzdalets img,
+.alexandrovets img,
+.povorino img,
+.muromets img {
+  max-width: 100%;
+  width: 166px;
+}
+
+.grayvoron,
+.ingushetiya,
+.vyshniy-volochek,
+.orekhovo-zuyevo {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.grayvoron img,
+.ingushetiya img,
+.vyshniy-volochek img,
+.orekhovo-zuyevo img {
+  max-width: 100%;
+  width: 150px;
+}
+
+.bora,
+.samum {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.bora img,
+.samum img {
+  width: 150px;
+  max-width: 100%;
+}
+
+.r60,
+.naberezhnye-chelny,
+.ivanovets {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+}
+
+.r60 img,
+.naberezhnye-chelny img,
+.ivanovets img {
+  width: 150px;
+  max-width: 100%;
+}
+
+.vasily-bykov,
+.dmitry-rogachev,
+.pavel-derzhavin,
+.sergey-kotov {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.vasily-bykov img,
+.dmitry-rogachev img,
+.pavel-derzhavin img,
+.sergey-kotov img {
+  width: 300px;
+  max-width: 100%;
+}
+
+.pyotr-morgunov {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.pyotr-morgunov img {
+  width: 375px;
+  max-width: 100%;
+}
+
+.nikolay-filchenkov,
+.orsk,
+.saratov {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.nikolay-filchenkov img,
+.orsk img,
+.saratov img {
+  width: 375px;
+  max-width: 100%;
+}
+
+.novocherkassk,
+.tsezar-kunikov,
+.georgiy-pobedonosets,
+.korolev,
+.azov,
+.minsk,
+.kaliningrad,
+.yamal,
+.olenegorsky-gornyak,
+.u402-konstantin-olshansky {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.novocherkassk img,
+.tsezar-kunikov img,
+.georgiy-pobedonosets img,
+.korolev img,
+.azov img,
+.minsk img,
+.kaliningrad img,
+.yamal img,
+.olenegorsky-gornyak img,
+.u402-konstantin-olshansky img {
+  width: 375px;
+  max-width: 100%;
+}
+
+.anatoly-zheleznyakov {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.anatoly-zheleznyakov img {
+  width: 150px;
+  max-width: 100%;
+}
+
+.ivan-antonov,
+.georgy-kurbatov,
+.vladimir-emelyanov {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.ivan-antonov img,
+.georgy-kurbatov img,
+.vladimir-emelyanov img {
+  width: 150px;
+  max-width: 100%;
+}
+
+.vice-admiral-zakharin,
+.valentin-pikul,
+.kovrovets,
+.ivan-golubets {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.vice-admiral-zakharin img,
+.valentin-pikul img,
+.kovrovets img,
+.ivan-golubets img {
+  width: 150px;
+  max-width: 100%;
+}
+
+.veliky-novgorod,
+.kolpino,
+.rostov-on-don,
+.stary-oskol,
+.krasnodar {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.veliky-novgorod img,
+.kolpino img,
+.rostov-on-don img,
+.stary-oskol img,
+.krasnodar img {
+  width: 160px;
+  max-width: 100%;
+}
+
+.alrosa {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.alrosa img {
+  width: 160px;
+  max-width: 100%;
+}
+
+.ivan-khurs {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.ivan-khurs img {
+  width: 300px;
+  max-width: 100%;
+}
+
+.priazovye {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.priazovye img {
+  width: 300px;
+  max-width: 100%;
+}
+
+.vasily-bekh {
+  margin: 0 5px;
+  text-align: center;
+  display: inline-block;
+}
+
+.vasily-bekh img {
+  width: 150px;
+  max-width: 100%;
+}
+
+h3 {
+  margin: 0px;
+  font-weight: normal;
+  font-style: italic;
+  font-size: 12pt;
+}
+
+h2 {
+  font-size: 14pt;
+}

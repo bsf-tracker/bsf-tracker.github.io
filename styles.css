@@ -417,3 +417,9 @@ h3 {
 h2 {
   font-size: 14pt;
 }
+
+.footer {
+  margin: 0px;
+  padding-bottom: 5px;
+  text-align: center;
+}

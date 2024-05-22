@@ -420,6 +420,8 @@ h2 {
 
 .footer {
   margin: 0px;
+  margin-top: 15px;
   padding-bottom: 5px;
   text-align: center;
+  font-size: 10pt;
 }

@@ -15,13 +15,14 @@
 a {
   text-decoration: underline;
   font-style: normal;
-  color: black;
+  color: unset;
 }
 
 .headline {
   margin: 0;
   padding: 0;
   text-align: center;
+  font-size: 14pt;
 }
 
 div {
@@ -44,11 +45,13 @@ div {
 }
 
 .deployed-elsewhere h3 {
-  background-color: lightgoldenrodyellow;
+  background-color: gray;
+  color: white;
 }
 
 .damaged h3 {
-  background-color: lightsalmon;
+  background-color: orange;
+  color: black;
 }
 
 .wrapper {
@@ -74,7 +77,7 @@ div {
   bottom: -80px;
   left: 0;
   right: 0;
-  color: lightcoral;
+  color: red;
   font-size: 100px;
   font-weight: bold;
   display: initial;
@@ -85,18 +88,20 @@ div {
   bottom: -50px;
   left: 0;
   right: 0;
-  color: lightcoral;
+  color: red;
   font-size: 70px;
   font-weight: bold;
   display: initial;
 }
 
 .sunk h3 {
-  background-color: lightcoral;
+  background-color: red;
+  color: white;
 }
 
 .sunk-small h3 {
-  background-color: lightcoral;
+  background-color: red;
+  color: white;
 }
 
 .moskva img {
@@ -109,12 +114,11 @@ div {
   margin: 0 5px;
   text-align: center;
   display: inline-block;
-  background-color: white;
 }
 
 .ladny img,
 .pytlivy img {
-  width: 375px;
+  width: 331px;
   max-width: 100%;
 }
 
@@ -129,7 +133,7 @@ div {
 .admiral-makarov img,
 .admiral-essen img,
 .admiral-grigorovich img {
-  width: 375px;
+  width: 335px;
   max-width: 100%;
 }
 
@@ -140,13 +144,8 @@ div {
 }
 
 .mercury img {
-  width: 320px;
+  width: 280px;
   max-width: 100%;
-}
-
-.tsyklon,
-.askold {
-  background-color: lightcoral;
 }
 
 .tsyklon img,
@@ -175,7 +174,7 @@ div {
 .povorino img,
 .muromets img {
   max-width: 100%;
-  width: 166px;
+  width: 192px;
 }
 
 .grayvoron,
@@ -192,7 +191,7 @@ div {
 .vyshniy-volochek img,
 .orekhovo-zuyevo img {
   max-width: 100%;
-  width: 150px;
+  width: 201px;
 }
 
 .bora,
@@ -204,7 +203,7 @@ div {
 
 .bora img,
 .samum img {
-  width: 150px;
+  width: 177px;
   max-width: 100%;
 }
 
@@ -220,7 +219,7 @@ div {
 .r60 img,
 .naberezhnye-chelny img,
 .ivanovets img {
-  width: 160px;
+  width: 150px;
   max-width: 100%;
 }
 
@@ -237,7 +236,7 @@ div {
 .dmitry-rogachev img,
 .pavel-derzhavin img,
 .sergey-kotov img {
-  width: 300px;
+  width: 252px;
   max-width: 100%;
 }
 
@@ -248,7 +247,7 @@ div {
 }
 
 .pyotr-morgunov img {
-  width: 375px;
+  width: 362px;
   max-width: 100%;
 }
 
@@ -263,7 +262,7 @@ div {
 .nikolay-filchenkov img,
 .orsk img,
 .saratov img {
-  width: 375px;
+  width: 303px;
   max-width: 100%;
 }
 
@@ -292,7 +291,7 @@ div {
 .yamal img,
 .olenegorsky-gornyak img,
 .u402-konstantin-olshansky img {
-  width: 375px;
+  width: 302px;
   max-width: 100%;
 }
 
@@ -303,7 +302,7 @@ div {
 }
 
 .anatoly-zheleznyakov img {
-  width: 150px;
+  width: 187px;
   max-width: 100%;
 }
 
@@ -318,7 +317,7 @@ div {
 .ivan-antonov img,
 .georgy-kurbatov img,
 .vladimir-emelyanov img {
-  width: 150px;
+  width: 163px;
   max-width: 100%;
 }
 
@@ -335,7 +334,7 @@ div {
 .valentin-pikul img,
 .kovrovets img,
 .ivan-golubets img {
-  width: 150px;
+  width: 163px;
   max-width: 100%;
 }
 
@@ -354,7 +353,7 @@ div {
 .rostov-on-don img,
 .stary-oskol img,
 .krasnodar img {
-  width: 160px;
+  width: 198px;
   max-width: 100%;
 }
 
@@ -365,7 +364,7 @@ div {
 }
 
 .alrosa img {
-  width: 160px;
+  width: 187px;
   max-width: 100%;
 }
 
@@ -376,7 +375,7 @@ div {
 }
 
 .ivan-khurs img {
-  width: 300px;
+  width: 254px;
   max-width: 100%;
 }
 
@@ -387,7 +386,7 @@ div {
 }
 
 .priazovye img {
-  width: 300px;
+  width: 245px;
   max-width: 100%;
 }
 
@@ -398,7 +397,7 @@ div {
 }
 
 .vasily-bekh img {
-  width: 150px;
+  width: 152px;
   max-width: 100%;
 }
 
@@ -418,10 +417,83 @@ h2 {
   font-size: 14pt;
 }
 
+summary {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-size: 14pt;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .footer {
   margin: 0px;
   margin-top: 15px;
   padding-bottom: 5px;
   text-align: center;
   font-size: 10pt;
+}
+
+.map-marker {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+  margin: 0px;
+  padding: 0px;
+  line-height: 1px;
+}
+
+.map-marker .map-marker-text {
+  display: none;
+  z-index: 2;
+  position: absolute;
+  font-size: 12pt;
+  font-weight: bold;
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  background-color: red;
+  color: white;
+  margin: 0px;
+}
+
+.map-marker .map-marker-img {
+  display: none;
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  max-height: 100%;
+}
+
+.map-marker:hover .map-marker-wrapper {
+  height: 200px;
+  width: 300px;
+  position: absolute;
+  padding-top: 20px;
+}
+
+.map-marker:hover .map-marker-text {
+  padding-top: 12px;
+  display: initial;
+  line-height: normal;
+}
+
+.map-marker:hover .map-marker-img {
+  display: initial;
+  padding-top: 82px;
+}
+
+.map-container {
+  position: relative;
+}
+
+.map-container img {
+  width: 100%;
+}
+
+.pin {
+  position: absolute;
+  font-size: 30px;
+  margin-top: -15px;
+  margin-left: -15px;
 }

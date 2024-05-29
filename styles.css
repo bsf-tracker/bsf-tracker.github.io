@@ -451,9 +451,16 @@ summary {
   width: 100%;
   height: 50px;
   text-align: center;
-  background-color: red;
   color: white;
   margin: 0px;
+}
+
+.red-background {
+  background-color: red;
+}
+
+.blue-background {
+  background-color: blueviolet;
 }
 
 .map-marker .map-marker-img {

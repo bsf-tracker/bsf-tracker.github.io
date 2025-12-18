@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Sea Fleet Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2'%3E%3Ccircle cx='12' cy='5' r='3'/%3E%3Cline x1='12' y1='22' x2='12' y2='8'/%3E%3Cpath d='M5 12H2a10 10 0 0 0 20 0h-3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="naval-tracker.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3"/>
+            <line x1="12" y1="22" x2="12" y2="8"/>
+            <path d="M5 12H2a10 10 0 0 0 20 0h-3"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>Black Sea Fleet Tracker</h1>
+          <p>FLEET MONITOR</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-content">
+      <button class="nav-tab active" data-tab="map" onclick="switchTab('map')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        Map
+      </button>
+      <button class="nav-tab" data-tab="fleet" onclick="switchTab('fleet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+          <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+          <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+          <path d="M12 10v4"/>
+          <path d="M12 2v3"/>
+        </svg>
+        Fleet Overview
+      </button>
+    </div>
+  </nav>
+
+  <!-- Map Tab -->
+  <div class="main-content" id="map-tab">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Search Vessel</div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" placeholder="Vessel name..." id="map-search" oninput="filterEvents()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Date Range</div>
+        <div class="date-presets">
+          <button class="date-preset-btn" onclick="setDateRange('1m')">1M</button>
+          <button class="date-preset-btn" onclick="setDateRange('6m')">6M</button>
+          <button class="date-preset-btn" onclick="setDateRange('ytd')">YTD</button>
+          <button class="date-preset-btn" onclick="setDateRange('1y')">1Y</button>
+          <button class="date-preset-btn" onclick="setDateRange('2y')">2Y</button>
+          <button class="date-preset-btn active" onclick="setDateRange('all')">All</button>
+          <button class="date-preset-btn" onclick="setDateRange('custom')">Custom</button>
+        </div>
+        <div class="date-filter" id="custom-date-filter" style="display: none;">
+          <div class="date-input-group">
+            <label for="date-from">From</label>
+            <input type="date" id="date-from" onchange="filterEvents()">
+          </div>
+          <div class="date-input-group">
+            <label for="date-to">To</label>
+            <input type="date" id="date-to" onchange="filterEvents()">
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Event Type</div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">
+            <span class="filter-dot gray"></span>
+            All Events
+          </button>
+          <button class="filter-btn" data-filter="sunk" onclick="setFilter('sunk')">
+            <span class="filter-dot red"></span>
+            Sunk
+          </button>
+          <button class="filter-btn" data-filter="damaged" onclick="setFilter('damaged')">
+            <span class="filter-dot orange"></span>
+            Damaged
+          </button>
+          <!-- <button class="filter-btn" data-filter="sea-trials" onclick="setFilter('sea-trials')">
+            <span class="filter-dot green"></span>
+            Sea Trials
+          </button> -->
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Map Layer</div>
+        <div class="map-layer-btns">
+          <button class="layer-btn active" data-layer="dark" onclick="setMapLayer('dark')">Dark</button>
+          <button class="layer-btn" data-layer="satellite" onclick="setMapLayer('satellite')">Satellite</button>
+          <button class="layer-btn" data-layer="terrain" onclick="setMapLayer('terrain')">Terrain</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Legend</div>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #ef4444;"></span>
+            Ship Sunk
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #f97316;"></span>
+            Severe Damage
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #eab308;"></span>
+            Moderate Damage
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #3b82f6;"></span>
+            Minor Damage
+          </div>
+          <!-- <div class="legend-item">
+            <span class="legend-dot" style="background: #22c55e;"></span>
+            Sea Trials
+          </div> -->
+        </div>
+      </div>
+      <button class="clear-btn" onclick="clearFilters()">Clear All Filters</button>
+    </aside>
+
+    <!-- Map -->
+    <div class="map-container">
+      <div id="map"></div>
+      <!-- <div class="coord-display" id="coord-display" title="Click to copy coordinates">
+        <span id="coord-text">Move cursor over map</span>
+      </div> -->
+      
+      <!-- Detail Panel -->
+      <aside class="detail-panel" id="detail-panel">
+        <div class="detail-header">
+          <h2 class="detail-title" id="detail-title"></h2>
+          <button class="close-btn" onclick="closeDetailPanel()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="detail-scroll-container" id="detail-scroll-container">
+          <div class="detail-badges" id="detail-badges"></div>
+          <div class="detail-content" id="detail-content"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Fleet Tab -->
+  <div class="fleet-content" id="fleet-tab">
+    <!-- Fleet Statistics -->
+    <div class="fleet-stats">
+      <div class="fleet-stat-card">
+        <div>
+          <div class="fleet-stat-label">Total Fleet</div>
+          <div class="fleet-stat-value" id="total-fleet">0</div>
+        </div>
+        <div class="fleet-stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+            <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+            <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="fleet-stat-card emerald">
+        <div>
+          <div class="fleet-stat-label">Operational</div>
+          <div class="fleet-stat-value" id="operational-fleet">0</div>
+        </div>
+        <div class="fleet-stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3"/>
+            <line x1="12" y1="22" x2="12" y2="8"/>
+            <path d="M5 12H2a10 10 0 0 0 20 0h-3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="fleet-stat-card amber">
+        <div>
+          <div class="fleet-stat-label">Damaged</div>
+          <div class="fleet-stat-value" id="damaged-fleet">0</div>
+        </div>
+        <div class="fleet-stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+      </div>
+      <div class="fleet-stat-card red">
+        <div>
+          <div class="fleet-stat-label">Sunk</div>
+          <div class="fleet-stat-value" id="sunk-fleet">0</div>
+        </div>
+        <div class="fleet-stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attrition Bar -->
+    <div class="attrition-section">
+      <div class="attrition-title">Fleet Attrition Rate</div>
+      <div class="attrition-bar">
+        <div class="attrition-segment operational" id="attrition-operational"></div>
+        <div class="attrition-segment damaged" id="attrition-damaged"></div>
+        <div class="attrition-segment sunk" id="attrition-sunk"></div>
+      </div>
+      <div class="attrition-labels">
+        <span id="operational-percent">Operational: 0%</span>
+        <span id="degraded-percent">Degraded: 0%</span>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="fleet-filters">
+      <div class="fleet-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input type="text" placeholder="Search vessels..." id="fleet-search" oninput="filterFleet()">
+      </div>
+      <select class="fleet-select" id="status-filter" onchange="filterFleet()">
+        <option value="all">All Status</option>
+        <option value="operational">Operational</option>
+        <option value="damaged">Damaged</option>
+        <option value="sunk">Sunk</option>
+      </select>
+      <select class="fleet-select" id="type-filter" onchange="updateClassFilter(); filterFleet()">
+        <option value="all">All Types</option>
+      </select>
+      <select class="fleet-select" id="class-filter" onchange="filterFleet()">
+        <option value="all">All Classes</option>
+      </select>
+    </div>
+
+    <!-- Ship Grid -->
+    <div class="ship-grid" id="ship-grid"></div>
+  </div>
+
+  <!-- Ship Modal -->
+  <div class="modal-overlay" id="ship-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="modal-title"></h2>
+          <p class="modal-subtitle" id="modal-subtitle"></p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Media Modal -->
+  <div class="media-modal-overlay" id="media-modal">
+    <button class="media-modal-close" onclick="closeMediaModal()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="media-modal-content">
+      <div class="media-modal-media" id="media-modal-media"></div>
+      <div class="media-modal-caption" id="media-modal-caption"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        Data sourced from official statements, verified news outlets, and open-source intelligence.
+        <span style="margin: 0 8px;">•</span>
+        Last updated: December 2025
+      </div>
+      <div class="footer-links">
+        <a href="https://x.com/BSFTracker">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Data    
+    const engagementData = [
+      {
+        id: 1,
+        title: "Moskva Sinking",
+        date: "14/04/2022",
+        timestamp: new Date("2022-04-14"),
+        lat: 45.18,
+        lng: 30.86,
+        approximateLocation: true,
+        vessel: "Moskva",
+        vesselClass: "Slava-class Cruiser",
+        hullNumber: "121",
+        eventType: "sunk",
+        severity: "critical",
+        description: "The flagship of the Russian Black Sea Fleet was struck by two Neptune anti-ship missiles and subsequently sank while being towed to port.",
+        shortDescription: "Flagship struck by Neptune missiles, sank during tow.",
+        weaponUsed: "R-360 Neptune anti-ship missiles",
+        casualties: null,
+        media: [
+          { type: "image", url: "Moskva_Sinking.jpg", caption: "Moskva sinking after missile strike" }
+        ],
+        sources: [
+          { name: "Russian Ministry of Defense", url: "https://tass.ru/armiya-i-opk/14383383", type: "official" },
+          { name: "Reuters", url: "https://www.reuters.com/world/europe/russia-says-flagship-black-sea-fleet-badly-damaged-by-blast-2022-04-14/", type: "news" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 2,
+        title: "Saratov Destruction",
+        date: "24/03/2022",
+        timestamp: new Date("2022-03-24"),
+        lat: 46.750,
+        lng: 36.773,
+        vessel: "Saratov",
+        vesselClass: "Alligator-class Landing Ship",
+        hullNumber: "150",
+        eventType: "sunk",
+        severity: "critical",
+        description: "Large landing ship destroyed at Berdiansk port by Ukrainian Tochka-U ballistic missile strike. Two other landing ships (Caesar Kunikov, Novocherkassk) were damaged in the same attack.",
+        shortDescription: "Destroyed at Berdiansk port by Tochka-U missile.",
+        weaponUsed: "OTR-21 Tochka-U ballistic missile",
+        casualties: null,
+        media: [
+          { type: "video", url: "https://www.youtube.com/watch?v=7g5ZVwDqLRg&t=98s", caption: "Video footage of Saratov destruction" },
+          { type: "image", url: "saratov_sunk.jpg", caption: "Satellite image of Saratov wreckage" }
+        ],
+        sources: [
+          { name: "USNI News", url: "https://news.usni.org/2022/03/25/satellite-images-confirm-russian-navy-landing-ship-was-sunk-at-berdyansk", type: "news" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 3,
+        title: "Vasily Bekh Sinking",
+        date: "17/06/2022",
+        timestamp: new Date("2022-06-17"),
+        lat: 45.22,
+        lng: 30.40,
+        approximateLocation: true,
+        vessel: "Vasily Bekh",
+        vesselClass: "Project 22870 tugboat",
+        hullNumber: "SB-739",
+        eventType: "sunk",
+        severity: "critical",
+        description: "Rescue tug struck by RGM-84 Harpoon anti-ship missiles while transporting troops and ammunition to Snake Island.",
+        shortDescription: "Sunk by RGM-84 Harpoon anti-ship missiles near Snake Island.",
+        weaponUsed: "RGM-84 Harpoon anti-ship missile",
+        casualties: null,
+        media: [
+          { type: "video", url: "https://www.youtube.com/watch?v=NhF_2Afh7DE", caption: "Vasily Bekh struck by missiles" }
+        ],
+        sources: [
+          { name: "Ukrainian Navy", url: "https://x.com/DefenceU/status/1537693105553649665", type: "official" },
+          { name: "The Sunday Times", url: "https://www.thetimes.com/world/russia-ukraine-war/article/ukraine-sinks-russian-ship-with-western-weapons-zr8bzmbgw", type: "news" }
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 4,
+        title: "Novocherkassk Destruction",
+        date: "26/12/2023",
+        timestamp: new Date("2023-12-26"),
+        lat: 45.0333,
+        lng: 35.3833,
+        vessel: "Novocherkassk",
+        vesselClass: "Ropucha-class Landing Ship",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Large landing ship destroyed in Feodosia port by Storm Shadow/SCALP cruise missile strike while loaded with ammunition.",
+        shortDescription: "Destroyed in Feodosia by cruise missile strike.",
+        weaponUsed: "Storm Shadow/SCALP-EG cruise missile",
+        casualties: null,
+        media: [
+          { type: "image", url: "novocherkassk-destroyed.jfif", caption: "Novocherkassk destroyed after Storm Shadow/SCALP strike" }
+        ],
+        sources: [
+          { name: "Satellite imagery", url: "https://x.com/trbrtc/status/1740021446997368846", type: "imagery" },
+          { name: "OSINT", url: "https://x.com/RALee85/status/1739552816761319649", type: "news" },
+          { name: "AP News", url: "https://apnews.com/article/russia-ukraine-war-navy-ship-crimea-3d558083dcd765d8b9daccc461865b21", type: "news:" }
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 5,
+        title: "Sergey Kotov Sinking",
+        date: "05/03/2024",
+        timestamp: new Date("2024-03-05"),
+        lat: 44.8638,
+        lng: 35.5957,
+        approximateLocation: true,
+        vessel: "Sergey Kotov",
+        vesselClass: "Bykov-class Patrol Ship",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Patrol ship sunk by Magura V5 naval drones in coordinated night attack near Crimean coast.",
+        shortDescription: "Sunk by Magura V5 naval drones in night attack.",
+        weaponUsed: "Magura V5 naval drone",
+        casualties: null,
+        media: [
+          { type: "video", url: "https://www.youtube.com/watch?v=fd6WhIC2lTI", caption: "Footage of Sergey Kotov attack and destruction" }
+        ],
+        sources: [
+          { name: "NBC News", url: "https://www.nbcnews.com/news/world/ukraine-sinks-russian-black-sea-patrol-ship-sergey-kotov-crimea-rcna141807", type: "News" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 6,
+        title: "Ivanovets Sinking",
+        date: "01/02/2024",
+        timestamp: new Date("2024-02-01"),
+        lat: 45.3333,
+        lng: 32.7667,
+        approximateLocation: true,
+        vessel: "Ivanovets",
+        vesselClass: "Tarantul-class Corvette",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Missile corvette sunk near Lake Donuzlav by Magura V5 naval drones in a coordinated attack.",
+        shortDescription: "Sunk by Magura V5 drones near Lake Donuzlav.",
+        weaponUsed: "Magura V5 naval drone",
+        casualties: null,
+        media: [
+          { type: "video", url: "https://www.youtube.com/watch?v=nDMe_8DmUZc", caption: "Footage of Ivanovets attack and subsequent sinking" }
+        ],
+        sources: [
+          { name: "CNN", url: "https://edition.cnn.com/2024/02/01/europe/ukraine-russian-warship-crimea-ivanovets-intl/index.html", type: "News" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 7,
+        title: "Caesar Kunikov Sinking",
+        date: "14/02/2024",
+        timestamp: new Date("2024-02-14"),
+        lat: 44.3956,
+        lng: 34.0659,
+        approximateLocation: true,
+        vessel: "Caesar Kunikov",
+        vesselClass: "Ropucha-class Landing Ship",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Landing ship sunk by Magura V5 naval drones near Alupka, Crimea.",
+        shortDescription: "Sunk by Magura V5 drones near Alupka.",
+        weaponUsed: "Magura V5 naval drone",
+        casualties: null,
+        media: [
+          { type: "video", url: "https://www.youtube.com/watch?v=zW6ZywseTR8", caption: "Footage of Caesar Kunikov attack and sinking" }
+        ],
+        sources: [
+          { name: "Reuters", url: "https://www.reuters.com/world/europe/ukrainian-forces-destroy-large-russian-landing-ship-military-says-2024-02-14/", type: "news" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 8,
+        title: "Rostov-on-Don Destruction",
+        date: "13/09/2023",
+        timestamp: new Date("2023-09-13"),
+        lat: 44.612,
+        lng: 33.535,
+        vessel: "Rostov-on-Don",
+        vesselClass: "Kilo-class Submarine",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Kilo-class submarine destroyed while in dry dock at Sevastopol by Storm Shadow cruise missile strike.",
+        shortDescription: "Destroyed in Sevastopol dry dock by cruise missile.",
+        weaponUsed: "Storm Shadow/SCALP-EG cruise missile",
+        casualties: null,
+        sources: [
+          { name: "UK Defence Ministry", url: "https://x.com/DefenceHQ/status/1702561936179630440", type: "imagery" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 9,
+        title: "Minsk Destruction",
+        date: "13/09/2023",
+        timestamp: new Date("2023-09-13"),
+        lat: 44.6111,
+        lng: 33.5347,
+        vessel: "Minsk",
+        vesselClass: "Ropucha-class Landing Ship",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Landing ship destroyed in the same Sevastopol shipyard attack that destroyed submarine Rostov-on-Don.",
+        shortDescription: "Destroyed in Sevastopol shipyard attack.",
+        weaponUsed: "Storm Shadow/SCALP-EG cruise missile",
+        casualties: null,
+        sources: [
+          { name: "UK Defence Ministry", url: "https://x.com/DefenceHQ/status/1702561936179630440", type: "imagery" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 10,
+        title: "Tsyklon Sinking",
+        date: "19/05/2024",
+        timestamp: new Date("2024-05-19"),
+        lat: 44.6232,
+        lng: 33.5443,
+        vessel: "Tsyklon",
+        vesselClass: "Karakurt-class Corvette",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Some indications that a Karakurt-class missile ship was sunk by ATACMS missiles in Sevastopol harbor.",
+        shortDescription: "Possibly sunk by ATACMS missiles in Sevastopol.",
+        weaponUsed: "MGM-140 ATACMS",
+        casualties: null,
+        sources: [
+          { name: "Kyiv Independent", url: "https://kyivindependent.com/general-staff-confirms-russian-missile-ship-zyklon-struck-off-occupied-crimea/", type: "news" },
+          { name: "OSINT", url: "https://x.com/MT_Anderson/status/1793695386072457216", type: "news" }
+        ],
+        confidence: "unconfirmed"
+      },
+      {
+        id: 11,
+        title: "Askold Destruction",
+        date: "04/11/2023",
+        timestamp: new Date("2023-11-04"),
+        lat: 45.3570,
+        lng: 36.4866,
+        vessel: "Askold",
+        vesselClass: "Karakurt-class Corvette",
+        hullNumber: null,
+        eventType: "sunk",
+        severity: "critical",
+        description: "Karakurt-class corvette destroyed at Zaliv shipyard in Kerch during construction by Storm Shadow/SCALP missile strike.",
+        shortDescription: "Destroyed at Kerch shipyard by Storm Shadow/SCALP strike.",
+        weaponUsed: "Storm Shadow/SCALP missile",
+        casualties: null,
+        media: [
+          { type: "image", url: "askold-damage.jpg", caption: "Askold damage after Storm Shadow/SCALP strike" }
+        ],
+        sources: [
+          { name: "OSINT", url: "https://x.com/bradyafr/status/1721556797847220441", type: "News" },
+          { name: "OSINT", url: "https://x.com/RALee85/status/1721755073238163947?s=20", type: "News" }
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 12,
+        title: "Azov Damaged",
+        date: "24/03/2024",
+        timestamp: new Date("2024-03-24"),
+        lat: 44.6131,
+        lng: 33.5290,
+        vessel: "Azov",
+        vesselClass: "Ropucha-class Landing Ship",
+        hullNumber: null,
+        eventType: "damaged",
+        severity: "moderate",
+        description: "Landing ship damaged in same attack that damaged Yamal.",
+        shortDescription: "Landing ship damaged in Sevastopol attack.",
+        weaponUsed: "Storm Shadow/SCALP-EG cruise missile",
+        casualties: null,
+        sources: [
+          { name: "UK Defence Ministry", url: "https://x.com/DefenceHQ/status/1773689177080533415", type: "official" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 13,
+        title: "Pavel Derzhavin Damaged",
+        date: "13/10/2023",
+        timestamp: new Date("2023-10-13"),
+        lat: 44.6272,
+        lng: 33.4966,
+        approximateLocation: true,
+        vessel: "Pavel Derzhavin",
+        vesselClass: "Bykov-class Patrol Ship",
+        hullNumber: null,
+        eventType: "damaged",
+        severity: "moderate",
+        description: "Patrol ship damaged by naval drone attack in Sevastopol.",
+        shortDescription: "Patrol ship damaged by naval drone.",
+        weaponUsed: "Naval drone",
+        casualties: null,
+        sources: [
+          { name: "OSINT", url: "https://x.com/Tendar/status/1713087923229254069", type: "news" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 14,
+        title: "Olenegorsky Gornyak Damaged",
+        date: "04/08/2023",
+        timestamp: new Date("2023-08-04"),
+        lat: 44.5055,
+        lng: 37.6776,
+        approximateLocation: true,
+        vessel: "Olenegorsky Gornyak",
+        vesselClass: "Ropucha-class Landing Ship",
+        hullNumber: null,
+        eventType: "damaged",
+        severity: "severe",
+        description: "Landing ship damaged and sinking near Novorossiysk.",
+        shortDescription: "Severely damaged near Novorossiysk.",
+        weaponUsed: "Naval drones",
+        casualties: null,
+        sources: [
+          { name: "OSINT", url: "https://x.com/Militarylandnet/status/1687354952836947968", type: "news" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 15,
+        title: "Ivan Khurs Damaged",
+        date: "25/05/2023",
+        timestamp: new Date("2023-05-25"),
+        lat: 44.6345,
+        lng: 33.4616,
+        approximateLocation: true,
+        vessel: "Ivan Khurs",
+        vesselClass: "Yuria Ivanov-class Landing Ship",
+        hullNumber: null,
+        eventType: "damaged",
+        severity: "minor",
+        description: "Intelligence ship received minor damage near Sevastopol.",
+        shortDescription: "Damaged near Sevastopol.",
+        weaponUsed: "Naval drones",
+        casualties: null,
+        sources: [
+          { name: "Ukrainian Defence Ministry", url: "https://x.com/DefenceU/status/1661789365582921744", type: "official" },
+        ],
+        confidence: "confirmed"
+      },
+      {
+        id: 16,
+        title: "Kolpino? Damaged",
+        date: "15/12/2025",
+        timestamp: new Date("2025-12-15"),
+        lat: 44.7157,
+        lng: 37.8323,
+        vessel: "Kolpino?",
+        vesselClass: "Kilo-class Submarine",
+        hullNumber: null,
+        eventType: "damaged",
+        severity: "minor",
+        description: "Submarine possibly received minor damage near Novorossiysk.",
+        shortDescription: "Possibly damaged in Novorossiysk.",
+        weaponUsed: "SubSeaBaby underwater drone",
+        casualties: null,
+        media: [
+          { type: "image", url: "kolpino-damage.jfif", caption: "Satellite image showing damage to pear near Kolpino" }
+        ],
+        sources: [
+          { name: "Satellite Imagery", url: "https://x.com/Mike_Eckel/status/2000973544323239998", type: "imagery" },
+        ],
+        confidence: "unconfirmed"
+      },
+    ];
+
+    const fleetData = [
+      // Slava-class Cruiser
+      { id: 1, name: "Moskva", class: "Slava-class (Project 1164)", type: "Cruiser", commissioned: 1983, status: "sunk", incidentId: 1 },
+      
+      // Krivak-class Frigates
+      { id: 2, name: "Ladny", class: "Krivak-class (Project 1135 Burevestnik)", type: "Frigate", commissioned: 1980, status: "operational" },
+      { id: 3, name: "Pytlivy", class: "Krivak-class (Project 1135 Burevestnik)", type: "Frigate", commissioned: 1981, status: "operational" },
+      
+      // Admiral Grigorovich-class Frigates
+      { id: 4, name: "Admiral Grigorovich", class: "Admiral Grigorovich-class (Project 11356R)", type: "Frigate", commissioned: 2016, status: "operational" },
+      { id: 5, name: "Admiral Essen", class: "Admiral Grigorovich-class (Project 11356R)", type: "Frigate", commissioned: 2016, status: "operational" },
+      { id: 6, name: "Admiral Makarov", class: "Admiral Grigorovich-class (Project 11356R)", type: "Frigate", commissioned: 2017, status: "operational" },
+      
+      // Steregushchiy class (Project 20380) multi-role corvette
+      { id: 47, name: "Merkury", class: "Steregushchiy-class (Project 20380)", type: "Corvette", commissioned: 2023, status: "operational" },
+
+      // Grisha-class (Project 1124 Albatros) Anti-submarine corvettes
+      { id: 53, name: "Muromets", class: "Grisha-class (Project 1124 Albatros)", type: "Anti-submarine corvette", commissioned: 1982, status: "operational" },
+      { id: 54, name: "Kasimov", class: "Grisha-class (Project 1124 Albatros)", type: "Anti-submarine corvette", commissioned: 1986, status: "operational" },
+      { id: 55, name: "Yeysk", class: "Grisha-class (Project 1124 Albatros)", type: "Anti-submarine corvette", commissioned: 1989, status: "operational" },
+      { id: 56, name: "Suzdalets", class: "Grisha-class (Project 1124 Albatros)", type: "Anti-submarine corvette", commissioned: 1983, status: "operational" },
+
+      //
+      { id: 57, name: "Pyotr Morgunov", class: "Ivan Gren-class (Project 11711)", type: "Landing ship", commissioned: 2020, status: "operational" },
+
+      // Karakurt-class Corvettes
+      { id: 7, name: "Askold", class: "Karakurt-class (Project 22800)", type: "Corvette", commissioned: 2023, status: "sunk", incidentId: 11 },
+      { id: 8, name: "Tsyklon", class: "Karakurt-class (Project 22800)", type: "Corvette", commissioned: 2023, status: "sunk", incidentId: 10 },
+      { id: 49, name: "Tucha", class: "Karakurt-class (Project 22800)", type: "Corvette", commissioned: 2024, status: "operational" },
+      
+      // Buyan-M-class Corvettes
+      { id: 9, name: "Vyshniy Volochek", class: "Buyan-M-class (Project 21630)", type: "Corvette", commissioned: 2018, status: "operational" },
+      { id: 10, name: "Orekhovo-Zuyevo", class: "Buyan-M-class (Project 21630)", type: "Corvette", commissioned: 2018, status: "operational" },
+      { id: 11, name: "Ingushetia", class: "Buyan-M-class (Project 21630)", type: "Corvette", commissioned: 2019, status: "operational" },
+      { id: 12, name: "Grayvoron", class: "Buyan-M-class (Project 21630)", type: "Corvette", commissioned: 2021, status: "operational" },
+      
+      // Bora-class Corvettes
+      { id: 13, name: "Bora", class: "Bora-class (Project 1239)", type: "Corvette", commissioned: 1989, status: "operational" },
+      { id: 14, name: "Samum", class: "Bora-class (Project 1239)", type: "Corvette", commissioned: 2000, status: "operational" },
+      
+      // Tarantul-class Corvettes
+      { id: 15, name: "Ivanovets", class: "Tarantul-class (Project 1241)", type: "Corvette", commissioned: 1989, status: "sunk", incidentId: 6 },
+      { id: 16, name: "R-60 Burya", class: "Tarantul-class (Project 1241)", type: "Corvette", commissioned: 1987, status: "operational" },
+      { id: 17, name: "Naberezhnye Chelny", class: "Tarantul-class (Project 1241)", type: "Corvette", commissioned: 1989, status: "operational" },
+      
+      // Bykov-class Patrol Ships
+      { id: 18, name: "Vasily Bykov", class: "Bykov-class (Project 22160)", type: "Patrol Ship", commissioned: 2018, status: "operational" },
+      { id: 19, name: "Dmitriy Rogachev", class: "Bykov-class (Project 22160)", type: "Patrol Ship", commissioned: 2019, status: "operational" },
+      { id: 20, name: "Pavel Derzhavin", class: "Bykov-class (Project 22160)", type: "Patrol Ship", commissioned: 2020, status: "operational", incidentId: 13 },
+      { id: 21, name: "Sergey Kotov", class: "Bykov-class (Project 22160)", type: "Patrol Ship", commissioned: 2022, status: "sunk", incidentId: 5 },
+      
+      // Ropucha-class Landing Ships
+      { id: 22, name: "Novocherkassk", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1987, status: "sunk", incidentId: 4 },
+      { id: 23, name: "Caesar Kunikov", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1986, status: "sunk", incidentId: 7 },
+      { id: 24, name: "Minsk", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1983, status: "sunk", incidentId: 9 },
+      { id: 25, name: "Yamal", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1988, status: "damaged" },
+      { id: 26, name: "Azov", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1990, status: "damaged", incidentId: 12 },
+      { id: 27, name: "Kaliningrad", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1984, status: "operational" },
+      { id: 28, name: "Korolev", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1991, status: "operational" },
+      { id: 58, name: "Georgyi Pobedonosets", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1991, status: "operational" },
+      { id: 59, name: "Olenegorsky Gornyak", class: "Ropucha-class (Project 775)", type: "Landing Ship", commissioned: 1991, status: "damaged", incidentId: 14 },
+      
+      { id: 61, name: "Ivan Khurs", class: "Yury Ivanov-class (Project 18280)", type: "Intelligence Ship", commissioned: 2017, status: "operational", incidentId: 15 },
+
+      // Alligator-class Landing Ships
+      { id: 29, name: "Saratov", class: "Alligator-class (Project 1171)", type: "Landing Ship", commissioned: 1966, status: "sunk", incidentId: 2 },
+      { id: 30, name: "Nikolay Filchenkov", class: "Alligator-class (Project 1171)", type: "Landing Ship", commissioned: 1975, status: "operational" },
+      { id: 50, name: "Orsk", class: "Alligator-class (Project 1171)", type: "Landing Ship", commissioned: 1968, status: "operational" },
+      
+      // Kilo-class Submarines
+      { id: 31, name: "Alrosa", class: "Kilo-class (Project 877 Paltus)", type: "Submarine", commissioned: 1990, status: "operational" },
+      { id: 33, name: "Rostov-on-Don", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2014, status: "sunk", incidentId: 8 },
+      { id: 34, name: "Stary Oskol", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2015, status: "operational" },
+      { id: 35, name: "Krasnodar", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2015, status: "operational" },
+      { id: 36, name: "Veliky Novgorod", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2016, status: "operational" },
+      { id: 37, name: "Kolpino", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2016, status: "operational", incidentId: 16 },
+      { id: 37, name: "Novorossiysk", class: "Kilo-class (Project 636.3)", type: "Submarine", commissioned: 2014, status: "operational" },
+      
+      { id: 44, name: "Vasily Bekh", class: "Project 22870", type: "Rescue Tug", commissioned: 2017, status: "sunk", incidentId: 3 },
+    ];
+
+    // State
+    let map;
+    let markers = [];
+    let markerCluster;
+    let currentTileLayer;
+    let currentFilter = 'all';
+
+    // Map layers
+    const tileLayers = {
+      dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      terrain: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      initDateFilters();
+      // updateStats();
+      initFleetTab();
+    });
+
+    function initDateFilters() {
+      // Set default date range: start of war (Feb 24, 2022) to today
+      document.getElementById('date-from').value = '2022-02-24';
+      document.getElementById('date-to').value = new Date().toISOString().split('T')[0];
+    }
+
+    function initMap() {
+      map = L.map('map', {
+        center: [44.5, 34.5],
+        zoom: 6,
+        zoomControl: false
+      });
+
+      currentTileLayer = L.tileLayer(tileLayers.dark, {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Debug: Track cursor position and allow copying coordinates
+      // const coordDisplay = document.getElementById('coord-display');
+      // const coordText = document.getElementById('coord-text');
+      
+      // map.on('mousemove', (e) => {
+      //   coordText.textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+      // });
+      
+      // map.on('mouseout', () => {
+      //   coordText.textContent = 'Move cursor over map';
+      // });
+      
+      // coordDisplay.addEventListener('click', () => {
+      //   const coords = coordText.textContent;
+      //   if (coords !== 'Move cursor over map') {
+      //     navigator.clipboard.writeText(coords).then(() => {
+      //       const original = coords;
+      //       coordText.textContent = 'Copied!';
+      //       coordText.style.color = '#22c55e';
+      //       setTimeout(() => {
+      //         coordText.textContent = original;
+      //         coordText.style.color = '';
+      //       }, 1000);
+      //     });
+      //   }
+      // });
+
+      renderMarkers(engagementData);
+    }
+
+    function getMarkerColor(eventType, severity) {
+      if (eventType === 'sunk') return '#ef4444';
+      if (eventType === 'sea-trials') return '#22c55e';
+      if (severity === 'severe') return '#f97316';
+      if (severity === 'moderate') return '#eab308';
+      if (severity === 'minor') return '#3b82f6';
+      return '#a855f7';
+    }
+
+    function createMarkerIcon(color, size = 24) {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="
+          width: ${size}px;
+          height: ${size}px;
+          background: ${color};
+          border: 2px solid rgba(255,255,255,0.9);
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 0 2px ${color}40;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "><div style="
+          width: ${size * 0.4}px;
+          height: ${size * 0.4}px;
+          background: rgba(255,255,255,0.9);
+          border-radius: 50%;
+        "></div></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+    }
+
+    function renderMarkers(events) {
+      // Clear existing markers
+      if (markerCluster) {
+        markerCluster.clearLayers();
+      } else {
+        markerCluster = L.markerClusterGroup({
+          maxClusterRadius: 50,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: true,
+          iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            let size = 'small';
+            let dimensions = 36;
+            if (count >= 10) {
+              size = 'large';
+              dimensions = 50;
+            } else if (count >= 5) {
+              size = 'medium';
+              dimensions = 42;
+            }
+            return L.divIcon({
+              html: `<div class="cluster-marker cluster-${size}"><span>${count}</span></div>`,
+              className: 'custom-cluster-icon',
+              iconSize: L.point(dimensions, dimensions)
+            });
+          }
+        });
+        map.addLayer(markerCluster);
+      }
+      markers = [];
+
+      events.forEach(event => {
+        const color = getMarkerColor(event.eventType, event.severity);
+        const size = event.eventType === 'sunk' ? 28 : 22;
+        
+        const marker = L.marker([event.lat, event.lng], {
+          icon: createMarkerIcon(color, size)
+        });
+
+        marker.bindPopup(`
+          <div class="popup-title">${event.title}</div>
+          <div class="popup-date">${event.date}</div>
+          <div class="popup-vessel">${event.vessel} • ${event.vesselClass}</div>
+          <div class="popup-desc">${event.shortDescription}</div>
+          <div class="popup-link" onclick="openDetailPanel(${event.id})">
+            View Details →
+          </div>
+        `);
+
+        markers.push(marker);
+        markerCluster.addLayer(marker);
+      });
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+      if (tab === 'map') {
+        document.getElementById('map-tab').style.display = 'flex';
+        document.getElementById('fleet-tab').classList.remove('active');
+        setTimeout(() => map.invalidateSize(), 100);
+      } else {
+        document.getElementById('map-tab').style.display = 'none';
+        document.getElementById('fleet-tab').classList.add('active');
+      }
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      filterEvents();
+    }
+
+    function filterEvents() {
+      const search = document.getElementById('map-search').value.toLowerCase();
+      const dateFrom = document.getElementById('date-from').value;
+      const dateTo = document.getElementById('date-to').value;
+      
+      const filtered = engagementData.filter(e => {
+        if (currentFilter !== 'all' && e.eventType !== currentFilter) return false;
+        if (search && !e.vessel.toLowerCase().includes(search)) return false;
+        
+        // Date filtering
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          if (e.timestamp < fromDate) return false;
+        }
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          toDate.setHours(23, 59, 59, 999); // Include the entire end day
+          if (e.timestamp > toDate) return false;
+        }
+        
+        return true;
+      });
+      renderMarkers(filtered);
+      updateStats();
+    }
+
+    function setDateRange(range) {
+      const today = new Date();
+      const toDate = today.toISOString().split('T')[0];
+      let fromDate;
+      
+      // For custom, just show the date pickers without changing values
+      if (range === 'custom') {
+        document.querySelectorAll('.date-preset-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.textContent.toLowerCase() === 'custom');
+        });
+        document.getElementById('custom-date-filter').style.display = 'flex';
+        return;
+      }
+      
+      switch(range) {
+        case '1m':
+          fromDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+          break;
+        case '6m':
+          fromDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
+          break;
+        case 'ytd':
+          fromDate = new Date(today.getFullYear(), 0, 1);
+          break;
+        case '1y':
+          fromDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+          break;
+        case '2y':
+          fromDate = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+          break;
+        case 'all':
+        default:
+          fromDate = new Date('2022-02-24');
+          break;
+      }
+      
+      document.getElementById('date-from').value = fromDate.toISOString().split('T')[0];
+      document.getElementById('date-to').value = toDate;
+      
+      // Update active state on buttons
+      document.querySelectorAll('.date-preset-btn').forEach(btn => {
+        const btnText = btn.textContent.toLowerCase();
+        btn.classList.toggle('active', btnText === range || 
+          (range === 'all' && btnText === 'all'));
+      });
+      
+      // Show/hide custom date picker
+      const customDateFilter = document.getElementById('custom-date-filter');
+      customDateFilter.style.display = range === 'custom' ? 'flex' : 'none';
+      
+      if (range !== 'custom') {
+        filterEvents();
+      }
+    }
+
+    function clearFilters() {
+      currentFilter = 'all';
+      document.getElementById('map-search').value = '';
+      // Reset date filters to defaults
+      document.getElementById('date-from').value = '2022-02-24';
+      document.getElementById('date-to').value = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === 'all');
+      });
+      document.querySelectorAll('.date-preset-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === 'All');
+      });
+      // Hide custom date picker
+      document.getElementById('custom-date-filter').style.display = 'none';
+      renderMarkers(engagementData);
+    }
+
+    function setMapLayer(layer) {
+      document.querySelectorAll('.layer-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.layer === layer);
+      });
+      map.removeLayer(currentTileLayer);
+      currentTileLayer = L.tileLayer(tileLayers[layer], {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
+    function updateStats() {
+      const sunk = engagementData.filter(e => e.eventType === 'sunk').length;
+      const damaged = engagementData.filter(e => e.eventType === 'damaged').length;
+      document.getElementById('sunk-count').textContent = sunk;
+      document.getElementById('damaged-count').textContent = damaged;
+    }
+
+    function openDetailPanel(eventId) {
+      const event = engagementData.find(e => e.id === eventId);
+      if (!event) return;
+
+      document.getElementById('detail-title').textContent = event.title;
+      
+      document.getElementById('detail-badges').innerHTML = `
+        <span class="badge ${event.eventType}">${event.eventType.toUpperCase()}</span>
+        <span class="badge ${event.confidence}">${event.confidence.toUpperCase()}</span>
+      `;
+
+      document.getElementById('detail-content').innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-card">
+            <div class="detail-card-label">DATE</div>
+            <div class="detail-card-value">${event.date}</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-card-label">LOCATION${event.approximateLocation ? ' <span class="approx-indicator" title="Approximate location">(approx)</span>' : ''}</div>
+            <div class="detail-card-value">${event.approximateLocation ? '≈ ' : ''}${event.lat.toFixed(event.approximateLocation ? 2 : 4)}°N, ${event.lng.toFixed(event.approximateLocation ? 2 : 4)}°E</div>
+          </div>
+        </div>
+        <div class="detail-card full" style="margin-bottom: 16px;">
+          <div class="detail-card-label">VESSEL</div>
+          <div class="detail-card-value">${event.vessel}</div>
+          <div class="detail-card-sub">${event.vesselClass} ${event.hullNumber ? `• Hull #${event.hullNumber}` : ''}</div>
+        </div>
+        ${event.weaponUsed ? `
+        <div class="detail-card full" style="margin-bottom: 16px;">
+          <div class="detail-card-label">WEAPON / METHOD</div>
+          <div class="detail-card-value">${event.weaponUsed}</div>
+        </div>
+        ` : ''}
+        <div class="detail-section-title">DESCRIPTION</div>
+        <p class="detail-description">${event.description}</p>
+        ${event.media && event.media.length > 0 ? `
+          <div class="detail-section-title">MEDIA</div>
+          <div class="media-gallery">
+            ${event.media.map((m, i) => {
+              if (m.type === 'video') {
+                // Check if it's a YouTube URL and extract thumbnail
+                const ytMatch = m.url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([\w-]+)/);
+                const thumbnailUrl = ytMatch 
+                  ? `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`
+                  : null;
+                return `
+                  <div class="media-item video" onclick="openMediaModal('${m.url.replace(/'/g, "\\'")}', '${(m.caption || 'Video').replace(/'/g, "\\'")}', 'video')">
+                    <div class="media-thumbnail video-thumbnail" ${thumbnailUrl ? `style="background-image:url('${thumbnailUrl}');background-size:cover;background-position:center;"` : ''}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="play-icon">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                      </svg>
+                    </div>
+                    <div class="media-caption">${m.caption || 'Video'}</div>
+                  </div>
+                `;
+              } else {
+                return `
+                  <div class="media-item image" onclick="openMediaModal('${m.url.replace(/'/g, "\\'")}', '${(m.caption || '').replace(/'/g, "\\'")}', 'image')">
+                    <img src="${m.url}" alt="${m.caption || 'Image'}" class="media-thumbnail" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231e293b%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2364748b%22 font-size=%2212%22>Image</text></svg>'" />
+                    <div class="media-caption">${m.caption || ''}</div>
+                  </div>
+                `;
+              }
+            }).join('')}
+          </div>
+        ` : ''}
+        ${event.casualties ? `
+          <div class="detail-card full" style="margin-bottom: 16px;">
+            <div class="detail-card-label">CASUALTIES</div>
+            <div class="detail-card-value">${event.casualties}</div>
+          </div>
+        ` : ''}
+        <div class="detail-section-title">SOURCES</div>
+        <div class="source-list">
+          ${event.sources.map(s => `
+            <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-item">
+              <div class="source-info">
+                <div class="source-name">${s.name}</div>
+                <div class="source-type">${s.type}</div>
+              </div>
+              <svg class="source-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          `).join('')}
+        </div>
+      `;
+
+      document.getElementById('detail-panel').classList.add('open');
+    }
+
+    function closeDetailPanel() {
+      document.getElementById('detail-panel').classList.remove('open');
+    }
+
+    // Prevent detail panel scroll from affecting the map
+    document.getElementById('detail-scroll-container').addEventListener('wheel', (e) => {
+      e.stopPropagation();
+    });
+
+    // Fleet tab
+    function initFleetTab() {
+      // Populate type filter
+      const types = [...new Set(fleetData.map(s => s.type))];
+      const typeSelect = document.getElementById('type-filter');
+      types.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        typeSelect.appendChild(option);
+      });
+
+      // Initial class filter population
+      updateClassFilter();
+
+      updateFleetStats();
+      renderShipGrid(fleetData);
+    }
+
+    function updateClassFilter() {
+      const type = document.getElementById('type-filter').value;
+      const classSelect = document.getElementById('class-filter');
+      const currentClass = classSelect.value;
+      
+      // Get classes based on selected type
+      const filteredShips = type === 'all' ? fleetData : fleetData.filter(s => s.type === type);
+      const classes = [...new Set(filteredShips.map(s => s.class))].sort();
+      
+      // Clear existing options except "All Classes"
+      classSelect.innerHTML = '<option value="all">All Classes</option>';
+      
+      // Add filtered class options
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        classSelect.appendChild(option);
+      });
+      
+      // Try to preserve previous selection if still valid
+      if (classes.includes(currentClass)) {
+        classSelect.value = currentClass;
+      } else {
+        classSelect.value = 'all';
+      }
+    }
+
+    function updateFleetStats() {
+      const total = fleetData.length;
+      const operational = fleetData.filter(s => s.status === 'operational').length;
+      const damaged = fleetData.filter(s => s.status === 'damaged').length;
+      const sunk = fleetData.filter(s => s.status === 'sunk').length;
+
+      document.getElementById('total-fleet').textContent = total;
+      document.getElementById('operational-fleet').textContent = operational;
+      document.getElementById('damaged-fleet').textContent = damaged;
+      document.getElementById('sunk-fleet').textContent = sunk;
+
+      // Attrition bar
+      document.getElementById('attrition-operational').style.width = `${(operational / total) * 100}%`;
+      document.getElementById('attrition-damaged').style.width = `${(damaged / total) * 100}%`;
+      document.getElementById('attrition-sunk').style.width = `${(sunk / total) * 100}%`;
+
+      document.getElementById('operational-percent').textContent = `Operational: ${Math.round((operational / total) * 100)}%`;
+      document.getElementById('degraded-percent').textContent = `Degraded: ${Math.round(((damaged + sunk) / total) * 100)}%`;
+    }
+
+    function filterFleet() {
+      const search = document.getElementById('fleet-search').value.toLowerCase();
+      const status = document.getElementById('status-filter').value;
+      const type = document.getElementById('type-filter').value;
+      const shipClass = document.getElementById('class-filter').value;
+
+      const filtered = fleetData.filter(ship => {
+        if (status !== 'all' && ship.status !== status) return false;
+        if (type !== 'all' && ship.type !== type) return false;
+        if (shipClass !== 'all' && ship.class !== shipClass) return false;
+        if (search && !ship.name.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      renderShipGrid(filtered);
+    }
+
+    function renderShipGrid(ships) {
+      const grid = document.getElementById('ship-grid');
+      grid.innerHTML = ships.map(ship => {
+        const incident = ship.incidentId ? engagementData.find(e => e.id === ship.incidentId) : null;
+        const hasIncident = !!incident;
+        
+        return `
+          <div class="ship-card ${ship.status} ${hasIncident ? 'clickable' : ''}" 
+               ${hasIncident ? `onclick="openShipModal(${ship.id})"` : ''}>
+            <div class="ship-card-header">
+              <div>
+                <div class="ship-name">${ship.name}</div>
+                <div class="ship-class">${ship.class}</div>
+              </div>
+              <span class="ship-status ${ship.status}">${ship.status}</span>
+            </div>
+            <div class="ship-details">
+              <div>
+                <span class="ship-detail-label">Type:</span>
+                <span class="ship-detail-value">${ship.type}</span>
+              </div>
+              <div>
+                <span class="ship-detail-label">Commissioned:</span>
+                <span class="ship-detail-value">${ship.commissioned}</span>
+              </div>
+            </div>
+            ${hasIncident ? `
+              <div class="ship-incident">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="6"/>
+                  <circle cx="12" cy="12" r="2"/>
+                </svg>
+                Incident: ${incident.date}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openShipModal(shipId) {
+      const ship = fleetData.find(s => s.id === shipId);
+      if (!ship || !ship.incidentId) return;
+
+      const incident = engagementData.find(e => e.id === ship.incidentId);
+      if (!incident) return;
+
+      document.getElementById('modal-title').textContent = ship.name;
+      document.getElementById('modal-subtitle').textContent = `${ship.class} • ${ship.type}`;
+
+      document.getElementById('modal-body').innerHTML = `
+        <div class="incident-alert">
+          <div class="incident-alert-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+            <span class="incident-alert-title">${incident.title}</span>
+          </div>
+          <p class="incident-alert-desc">${incident.description}</p>
+        </div>
+        <div class="modal-grid">
+          <div class="modal-card">
+            <div class="modal-card-label">DATE</div>
+            <div class="modal-card-value">${incident.date}</div>
+          </div>
+          <div class="modal-card">
+            <div class="modal-card-label">WEAPON USED</div>
+            <div class="modal-card-value">${incident.weaponUsed}</div>
+          </div>
+        </div>
+        <div class="modal-section-title">VERIFIED SOURCES</div>
+        <div class="modal-source-list">
+          ${incident.sources.map(s => `
+            <a href="${s.url}" class="modal-source-item">
+              <div class="modal-source-info">
+                <span class="source-dot ${s.type}"></span>
+                <div>
+                  <div class="modal-source-name">${s.name}</div>
+                  <div class="modal-source-type">${s.type}</div>
+                </div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          `).join('')}
+        </div>
+        <button class="view-map-btn" onclick="viewOnMap(${incident.id})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          View on Map
+        </button>
+      `;
+
+      document.getElementById('ship-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('ship-modal').classList.remove('open');
+    }
+
+    function viewOnMap(eventId) {
+      closeModal();
+      switchTab('map');
+      setTimeout(() => {
+        const event = engagementData.find(e => e.id === eventId);
+        if (event) {
+          // Find the marker for this event
+          const eventIndex = engagementData.findIndex(e => e.id === eventId);
+          if (eventIndex !== -1 && markers[eventIndex]) {
+            const marker = markers[eventIndex];
+            
+            // Get the visible parent (cluster or marker itself)
+            const visibleParent = markerCluster.getVisibleParent(marker);
+            
+            if (visibleParent === marker) {
+              // Marker is not clustered, just zoom and open popup
+              map.setView([event.lat, event.lng], 10);
+              marker.openPopup();
+            } else {
+              // Marker is in a cluster - zoom to reveal it
+              markerCluster.zoomToShowLayer(marker, () => {
+                marker.openPopup();
+              });
+            }
+          } else {
+            // Fallback - just zoom to location
+            map.setView([event.lat, event.lng], 10);
+          }
+        }
+      }, 100);
+    }
+
+    // Close modal on overlay click
+    document.getElementById('ship-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'ship-modal') {
+        closeModal();
+      }
+    });
+
+    // Media modal functions
+    function openMediaModal(url, caption, type) {
+      const mediaContainer = document.getElementById('media-modal-media');
+      const captionEl = document.getElementById('media-modal-caption');
+      
+      if (type === 'video') {
+        // Check if it's a YouTube URL
+        const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([\w-]+)/);
+        if (youtubeMatch) {
+          mediaContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${youtubeMatch[1]}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+        } else {
+          mediaContainer.innerHTML = `<video controls autoplay><source src="${url}" type="video/mp4">Your browser does not support video.</video>`;
+        }
+      } else {
+        mediaContainer.innerHTML = `<img src="${url}" alt="${caption}" />`;
+      }
+      
+      captionEl.textContent = caption || '';
+      captionEl.style.display = caption ? 'block' : 'none';
+      
+      document.getElementById('media-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMediaModal() {
+      const modal = document.getElementById('media-modal');
+      const mediaContainer = document.getElementById('media-modal-media');
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      // Clear media to stop video playback
+      setTimeout(() => { mediaContainer.innerHTML = ''; }, 300);
+    }
+
+    // Close media modal on overlay click or Escape key
+    document.getElementById('media-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'media-modal' || e.target.classList.contains('media-modal-overlay')) {
+        closeMediaModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('media-modal').classList.contains('open')) {
+        closeMediaModal();
+      }
+    });
+  </script>
+</body>
+</html>
